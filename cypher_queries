@@ -1,0 +1,16 @@
+#Cypher Queries
+
+##Fan-out
+
+###Set fan-out flags
+```
+CALL (){
+  MATCH (receiver)<-[t:TRANSACTION]-(sender)
+  WITH t.step AS step, sender, count(DISTINCT receiver) AS destinations
+  RETURN avg(destinations) AS mean, stdev(destinations) AS stdev
+}
+MATCH (receiver)<-[t:TRANSACTION]-(sender)
+WITH t.step as step,sender,count(DISTINCT receiver) AS destinations,mean,stdev
+WHERE destinations > mean + 3 * stdev
+SET sender.fan_out_flag=1
+```
