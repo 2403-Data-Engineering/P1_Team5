@@ -65,3 +65,18 @@ WITH t.step AS step,receiver, count(DISTINCT sender) AS sources, collect({src:se
 WHERE sources > mean + 3 * stdev
 RETURN receiver, transactions
 ```
+
+## Drain-Behavior
+
+### Set drain behavior flags
+```
+MATCH (a)-[t1:TRANSACTION]->(b), (b)-[t2:TRANSACTION]->(c) WHERE t2.step - t1.step <= 10 AND t2.newbalanceOrig < (t1.amount * 0.1) 
+SET b.drain_flag=1
+```
+
+### Drain behavior w/ arrows to visualize
+```
+MATCH (a)-[t1:TRANSACTION]->(b), (b)-[t2:TRANSACTION]->(c) 
+WHERE t2.step - t1.step <= 10 AND t2.newbalanceOrig < (t1.amount * 0.1) 
+RETURN a,t1,b,t2,c
+```
