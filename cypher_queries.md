@@ -80,3 +80,36 @@ MATCH (a)-[t1:TRANSACTION]->(b), (b)-[t2:TRANSACTION]->(c)
 WHERE t2.step - t1.step <= 10 AND t2.newbalanceOrig < (t1.amount * 0.1) 
 RETURN a,t1,b,t2,c
 ```
+
+## Guilt By Association
+
+### TODO add all other flags
+### Run before guilt by association
+```
+MATCH (n:Account)
+CALL (n) {
+    SET n.flagged = CASE 
+        WHEN 
+            n.fan_out_flag              = 1 OR
+            n.fan_in_flag               = 1 OR
+            n.drain_flag                = 1 
+        THEN true ELSE false END
+} IN TRANSACTIONS OF 10000 ROWS
+```
+
+### Set guilt by association flags
+```
+MATCH (a:Account {flagged: false})-[t:TRANSACTION]-(b:Account {flagged: true}) 
+WITH a, count(DISTINCT b) AS bad_neighbors
+WHERE bad_neighbors >= 1
+SET a.guilt_by_association_flag=1
+```
+
+### Guilt by association w/ arrows to visualize
+```
+MATCH (a:Account {flagged: false})-[t:TRANSACTION]-(b:Account {flagged: true}) 
+WITH a, count(DISTINCT b) AS bad_neighbors,collect({dst:b,tx:t}) as transaction
+WHERE bad_neighbors >= 1
+RETURN a,transaction
+```
+
