@@ -14,3 +14,11 @@ WITH t.step as step,sender,count(DISTINCT receiver) AS destinations,mean,stdev
 WHERE destinations > mean + 3 * stdev
 SET sender.fan_out_flag=1
 ```
+
+###Fan-out w/ arrows to visualize
+```
+MATCH (receiver)<-[t:TRANSACTION]-(sender)
+WITH t.step as step,sender,count(DISTINCT receiver) AS destinations, collect({rec:receiver,tx:t}) as transactions
+WHERE destinations > 1.000007386948633 + 3 * 0.0027178843313898243
+RETURN sender,transactions
+```
