@@ -83,8 +83,7 @@ RETURN a,t1,b,t2,c
 
 ## Guilt By Association
 
-### TODO add all other flags
-### Run before guilt by association
+### Set flagged
 ```
 MATCH (n:Account)
 CALL (n) {
@@ -92,7 +91,10 @@ CALL (n) {
         WHEN 
             n.fan_out_flag              = 1 OR
             n.fan_in_flag               = 1 OR
-            n.drain_flag                = 1 
+            n.drain_flag                = 1 OR
+            n.transfer_cashout_flag     = 1 OR
+            n.in_suspicious_ring_flag   = 1 OR
+            n.in_cycle_flag             = 1 
         THEN 1 ELSE 0 END
 } IN TRANSACTIONS OF 10000 ROWS
 ```
