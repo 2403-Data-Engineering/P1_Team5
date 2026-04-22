@@ -93,13 +93,13 @@ CALL (n) {
             n.fan_out_flag              = 1 OR
             n.fan_in_flag               = 1 OR
             n.drain_flag                = 1 
-        THEN true ELSE false END
+        THEN 1 ELSE 0 END
 } IN TRANSACTIONS OF 10000 ROWS
 ```
 
 ### Set guilt by association flags
-```
-MATCH (a:Account {flagged: false})-[t:TRANSACTION]-(b:Account {flagged: true}) 
+```Cypher
+MATCH (a:Account {flagged: 0})-[t:TRANSACTION]-(b:Account {flagged: 1}) 
 WITH a, count(DISTINCT b) AS bad_neighbors
 WHERE bad_neighbors >= 1
 SET a.guilt_by_association_flag=1
@@ -107,7 +107,7 @@ SET a.guilt_by_association_flag=1
 
 ### Guilt by association w/ arrows to visualize
 ```
-MATCH (a:Account {flagged: false})-[t:TRANSACTION]-(b:Account {flagged: true}) 
+MATCH (a:Account {flagged: 0})-[t:TRANSACTION]-(b:Account {flagged: 1}) 
 WITH a, count(DISTINCT b) AS bad_neighbors,collect({dst:b,tx:t}) as transaction
 WHERE bad_neighbors >= 1
 RETURN a,transaction
