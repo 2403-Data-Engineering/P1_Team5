@@ -151,4 +151,144 @@ UNWIND nodes(path) AS n
 SET n.in_cycle_flag = 1;
 ```
 
+
+# Node Similarity Among Flagged Accounts
+
+---
+
+## Initialize Flag
+
+Set `similar_to_flagged_flag` to 0 if it does not exist
+
+```cypher
+MATCH (a:Account)
+WITH a ORDER BY id(a)
+CALL (a) {
+  WITH a
+  SET a.similar_to_flagged_flag = coalesce(a.similar_to_flagged_flag, 0)
+} IN TRANSACTIONS OF 5000 ROWS;
+```
+
+---
+
+## Flagged Accounts Exist
+
+```cypher
+MATCH (a:Account)
+RETURN sum(a.flagged) AS flagged_accounts;
+```
+
+
+
+## Create Reduced Graph Projection
+
+```cypher
+CALL gds.graph.project.cypher(
+  'similarityTiny',
+  '
+  MATCH (a:Account)
+  WHERE a.id STARTS WITH "C"
+  RETURN id(a) AS id
+  ',
+  '
+  MATCH (a:Account)-[t:TRANSACTION]->(b:Account)
+  WHERE a.id STARTS WITH "C"
+    AND b.id STARTS WITH "C"
+    AND t.type = "TRANSFER"
+    AND t.amount >= 500000
+    AND t.step <= 10
+  RETURN id(a) AS source, id(b) AS target
+  '
+);
+```
+
+---
+
+
+
+## Estimate Memory for Filtered Node Similarity
+
+```cypher
+MATCH (a:Account)
+WHERE a.flagged = 1
+WITH collect(id(a)) AS flaggedIds
+
+CALL gds.nodeSimilarity.filtered.write.estimate(
+  'similarityTiny',
+  {
+    sourceNodeFilter: flaggedIds,
+    targetNodeFilter: 'Account',
+    similarityCutoff: 0.8,
+    degreeCutoff: 2,
+    topK: 5,
+    writeRelationshipType: 'SIMILAR_TO_TINY',
+    writeProperty: 'similarity'
+  }
+)
+YIELD requiredMemory, treeView
+RETURN requiredMemory, treeView;
+```
+
+---
+
+## Run Filtered Node Similarity
+
+```cypher
+MATCH (a:Account)
+WHERE a.flagged = 1
+WITH collect(id(a)) AS flaggedIds
+
+CALL gds.nodeSimilarity.filtered.write(
+  'similarityTiny',
+  {
+    sourceNodeFilter: flaggedIds,
+    targetNodeFilter: 'Account',
+    similarityCutoff: 0.8,
+    degreeCutoff: 2,
+    topK: 5,
+    writeRelationshipType: 'SIMILAR_TO_TINY',
+    writeProperty: 'similarity'
+  }
+)
+YIELD relationshipsWritten, nodesCompared
+RETURN relationshipsWritten, nodesCompared;
+```
+
+---
+
+## Flag Similar Accounts
+
+```cypher
+MATCH (a:Account)-[s:SIMILAR_TO_TINY]->(b:Account)
+WHERE a.flagged = 1
+  AND b.flagged = 0
+  AND s.similarity >= 0.8
+SET b.similar_to_flagged_flag = 1
+RETURN count(DISTINCT b) AS similar_flagged_accounts;
+```
+
+---
+
+## Node Similarity (Visualization)
+
+```cypher
+MATCH (a:Account)-[s:SIMILAR_TO_TINY]->(b:Account)
+WHERE a.flagged = 1
+  AND b.flagged = 0
+  AND s.similarity >= 0.8
+RETURN a, s, b
+LIMIT 25;
+```
+
+---
+
+## Count Final Results
+
+```cypher
+MATCH (a:Account)
+RETURN sum(a.similar_to_flagged_flag) AS similar_to_flagged_accounts;
+```
+
+---
+
 ---
