@@ -133,4 +133,9 @@ SET a.risk_score =
     (10 * a.similar_to_flagged_flag)
 } IN TRANSACTIONS OF 10000 ROWS
 ```
-
+### Set transactions as flagged if interact w flagged acc
+```Cypher
+MATCH (a:Account)-[t:TRANSACTION]->(b:Account) 
+WHERE a.flagged =1 or b.flagged =1 
+SET t.flagged = 1
+```
