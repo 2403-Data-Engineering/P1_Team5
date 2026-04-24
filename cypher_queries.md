@@ -139,3 +139,12 @@ MATCH (a:Account)-[t:TRANSACTION]->(b:Account)
 WHERE a.flagged =1 or b.flagged =1 
 SET t.flagged = 1
 ```
+### Set all other transactions to 0
+```Cypher
+MATCH (a:Account)-[t:TRANSACTION]->()
+WITH t ORDER BY id(a)
+CALL(t) {
+WITH t
+SET t.flagged = coalesce(t.flagged, 0)
+} IN TRANSACTIONS OF 5000 ROWS;
+```
