@@ -1,17 +1,5 @@
 # Cypher Queries
 
-## Set flag to 0 if doesnt exist
-Set one at a time if too intensive
-```
-MATCH (a:Account)
-
-WITH a ORDER BY id(a)
-CALL(a) {
-WITH a
-SET a.fan_in_flag = coalesce(a.fan_in_flag, 0),
-    a.fan_out_flag = coalesce(a.fan_out_flag, 0)
-} IN TRANSACTIONS OF 5000 ROWS;
-```
 ## Fan-out
 
 ### Set fan-out flags
@@ -113,5 +101,36 @@ MATCH (a:Account {flagged: 0})-[t:TRANSACTION]-(b:Account {flagged: 1})
 WITH a, count(DISTINCT b) AS bad_neighbors,collect({dst:b,tx:t}) as transaction
 WHERE bad_neighbors >= 1
 RETURN a,transaction
+```
+## Risk score
+
+### Set flag to 0 if doesnt exist or else get error, change a.attribute to whichever needed
+Set one at a time if too intensive
+```
+MATCH (a:Account)
+
+WITH a ORDER BY id(a)
+CALL(a) {
+WITH a
+SET a.fan_in_flag = coalesce(a.fan_in_flag, 0),
+    a.fan_out_flag = coalesce(a.fan_out_flag, 0)
+} IN TRANSACTIONS OF 5000 ROWS;
+```
+### Set risk Score calculation
+```Cypher
+MATCH (a:Account)
+WITH a ORDER BY id(a)
+CALL(a) {
+  WITH a
+SET a.risk_score = 
+    (10 * a.fan_out_flag) +
+    (10 * a.fan_in_flag) +
+    (15 * a.drain_flag) +
+    (15 * a.transfer_cashout_flag) +
+    (20 * a.in_suspicious_ring_flag) +
+    (10 * a.in_cycle_flag) +
+    (10 * a.guilt_by_association_flag) +
+    (10 * a.similar_to_flagged_flag)
+} IN TRANSACTIONS OF 10000 ROWS
 ```
 

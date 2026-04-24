@@ -28,14 +28,15 @@ ORDER BY fraud_rate DESC
     """
     with driver.session() as session:
         result = session.run(query)
-        df = pd.DataFrame([record.data() for record in result])
-        return df
+        return [record.data() for record in result]
+        # df = pd.DataFrame([record.data() for record in result])
+        # return df
 
 
 result = get_transaction_types(driver)
-result.to_parquet("TableParquet/transactions.parquet", index=False)
-print(f"Written {len(result)} rows")
+# result.to_parquet("TableParquet/transactions.parquet", index=False)
+# print(f"Written {len(result)} rows")
 # result = get_transaction_types(driver)
-# for row in result:
-#     print(row)
+for row in result:
+    print(row)
 
