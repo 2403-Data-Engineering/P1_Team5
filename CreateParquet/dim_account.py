@@ -5,8 +5,9 @@ driver = neo4j_connection_manager.get_connection()
 def create_dim_account():
     query = """
         MATCH (a:Account)
-        RETURN a.id,a.risk_score,a.flagged,a.drain_flag,a.fan_in_flag,a.fan_out_flag,a.in_cycle_flag,
-        a.guilt_by_association_flag
+        RETURN a.id,a.risk_score,a.flagged,a.drain_flag,
+        a.fan_in_flag,a.fan_out_flag,a.in_cycle_flag, a.in_suspicious_ring_flag,
+        a.guilt_by_association_flag,a.similar_to_flagged_flag,a.transfer_cashout_flag
     """
     with driver.session() as session:
         result = session.run(query)
