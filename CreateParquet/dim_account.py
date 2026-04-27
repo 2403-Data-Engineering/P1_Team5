@@ -7,7 +7,6 @@ def create_dim_account():
         MATCH (a:Account)
         RETURN a.id,a.risk_score,a.flagged,a.drain_flag,a.fan_in_flag,a.fan_out_flag,a.in_cycle_flag,
         a.guilt_by_association_flag
-        LIMIT 100
     """
     with driver.session() as session:
         result = session.run(query)
