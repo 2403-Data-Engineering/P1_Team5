@@ -5,6 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
+/powerbi_exports
 CreateParquet/TableParquet
 # Distribution / packaging
 .Python
