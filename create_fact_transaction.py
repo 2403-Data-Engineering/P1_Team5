@@ -49,6 +49,33 @@ def export_fact_transaction() -> None:
 
     fact_transaction = pd.DataFrame(rows)
 
+    base_datetime = pd.Timestamp("2024-01-01 00:00:00")
+
+    fact_transaction["datetime"] = fact_transaction["step"].apply(
+        lambda s: base_datetime + pd.Timedelta(hours=s - 1)
+    )
+
+    fact_transaction["date"] = fact_transaction["datetime"].dt.date.astype(str)
+
+    output_path = OUT_DIR / "fact_transaction"
+
+    fact_transaction.to_parquet(
+        output_path,
+        index=False,
+        partition_cols=["date"]
+    )
+
+    print(f"fact_transaction exported as partitioned parquet to {output_path.resolve()}")
+    print(f"Rows exported: {len(fact_transaction):,}")
+    print(fact_transaction.head())
+
+
+if __name__ == "__main__":
+    export_fact_transaction()
+    
+
+    fact_transaction = pd.DataFrame(rows)
+
     output_path = OUT_DIR / "fact_transaction.parquet"
     fact_transaction.to_parquet(output_path, index=False)
 
