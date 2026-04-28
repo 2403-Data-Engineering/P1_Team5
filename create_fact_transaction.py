@@ -14,12 +14,12 @@ DATABASE = ""
 OUT_DIR = Path("powerbi_exports")
 OUT_DIR.mkdir(exist_ok=True)
 
-QUERY = """
-MATCH (orig:Account)-[t:TRANSACTION]->(dest:Account)
+QMATCH (orig:Account)-[t:TRANSACTION]->(dest:Account)
 RETURN
-  id(t) AS transaction_id,
+  elementId(t) AS transaction_id,
   orig.id AS sender_account_id,
   dest.id AS receiver_account_id,
+  coalesce(orig.community_id, -1) AS community_id,   
   t.step AS step,
   t.type AS transaction_type,
   t.amount AS amount,
@@ -32,7 +32,6 @@ RETURN
   coalesce(dest.flagged, 0) AS receiver_flagged,
   coalesce(orig.risk_score, 0) AS sender_risk_score,
   coalesce(dest.risk_score, 0) AS receiver_risk_score
-"""
 
 
 def export_fact_transaction() -> None:
