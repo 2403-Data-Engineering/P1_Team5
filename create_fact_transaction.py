@@ -14,7 +14,7 @@ DATABASE = ""
 OUT_DIR = Path("powerbi_exports")
 OUT_DIR.mkdir(exist_ok=True)
 
-QMATCH (orig:Account)-[t:TRANSACTION]->(dest:Account)
+MATCH (orig:Account)-[t:TRANSACTION]->(dest:Account)
 RETURN
   elementId(t) AS transaction_id,
   orig.id AS sender_account_id,
