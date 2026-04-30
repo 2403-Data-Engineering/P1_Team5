@@ -3,7 +3,7 @@
 ## Fan-out
 
 ### Set fan-out flags
-```
+```cypher
 CALL (){
   MATCH (receiver)<-[t:TRANSACTION]-(sender)
   WITH t.step AS step, sender, count(DISTINCT receiver) AS destinations
@@ -16,7 +16,7 @@ SET sender.fan_out_flag=1
 ```
 
 ### Fan-out w/ arrows to visualize
-```
+```cypher
 MATCH (receiver)<-[t:TRANSACTION]-(sender)
 WITH t.step as step,sender,count(DISTINCT receiver) AS destinations, collect({rec:receiver,tx:t}) as transactions
 WHERE destinations > 1.000007386948633 + 3 * 0.0027178843313898243
@@ -27,7 +27,7 @@ RETURN sender,transactions
 ## Fan-In
 
 ### Set fan-in flags
-```
+```cypher
 CALL (){
   MATCH (sender)-[t:TRANSACTION]->(receiver)
   WITH t.step AS step, receiver, count(DISTINCT sender) AS sources
@@ -41,7 +41,7 @@ SET receiver.fan_in_flag=1
 ```
 
 ### Fan-in w/ arrows to visualize
-```
+```cypher
 CALL (){
   MATCH (sender)-[t:TRANSACTION]->(receiver)
   WITH t.step AS step, receiver, count(DISTINCT sender) AS sources
@@ -57,13 +57,13 @@ RETURN receiver, transactions
 ## Drain-Behavior
 
 ### Set drain behavior flags
-```
+```cypher
 MATCH (a)-[t1:TRANSACTION]->(b), (b)-[t2:TRANSACTION]->(c) WHERE t2.step - t1.step <= 10 AND t2.newbalanceOrig < (t1.amount * 0.1) 
 SET b.drain_flag=1
 ```
 
 ### Drain behavior w/ arrows to visualize
-```
+```cypher
 MATCH (a)-[t1:TRANSACTION]->(b), (b)-[t2:TRANSACTION]->(c) 
 WHERE t2.step - t1.step <= 10 AND t2.newbalanceOrig < (t1.amount * 0.1) 
 RETURN a,t1,b,t2,c
@@ -72,7 +72,7 @@ RETURN a,t1,b,t2,c
 ## Guilt By Association
 
 ### Set flagged
-```
+```cypher
 MATCH (n:Account)
 CALL (n) {
     SET n.flagged = CASE 
@@ -96,7 +96,7 @@ SET a.guilt_by_association_flag=1
 ```
 
 ### Guilt by association w/ arrows to visualize
-```
+```cypher
 MATCH (a:Account {flagged: 0})-[t:TRANSACTION]-(b:Account {flagged: 1}) 
 WITH a, count(DISTINCT b) AS bad_neighbors,collect({dst:b,tx:t}) as transaction
 WHERE bad_neighbors >= 1
@@ -106,7 +106,7 @@ RETURN a,transaction
 
 ### Set flag to 0 if doesnt exist or else get error, change a.attribute to whichever needed
 Set one at a time if too intensive
-```
+```cypher
 MATCH (a:Account)
 
 WITH a ORDER BY id(a)
