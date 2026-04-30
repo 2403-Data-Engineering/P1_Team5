@@ -6,15 +6,16 @@ from neo4j import GraphDatabase
 
 
 
-URI = ""
-USER = ""
+URI = "bolt://localhost:7687"
+USER = "neo4j"
 PASSWORD = ""
 DATABASE = ""
 
 OUT_DIR = Path("powerbi_exports")
 OUT_DIR.mkdir(exist_ok=True)
 
-QMATCH (orig:Account)-[t:TRANSACTION]->(dest:Account)
+QUERY = """
+MATCH (orig:Account)-[t:TRANSACTION]->(dest:Account)
 RETURN
   elementId(t) AS transaction_id,
   orig.id AS sender_account_id,
@@ -32,7 +33,7 @@ RETURN
   coalesce(dest.flagged, 0) AS receiver_flagged,
   coalesce(orig.risk_score, 0) AS sender_risk_score,
   coalesce(dest.risk_score, 0) AS receiver_risk_score
-
+"""
 
 def export_fact_transaction() -> None:
     driver = GraphDatabase.driver(URI, auth=(USER, PASSWORD))
